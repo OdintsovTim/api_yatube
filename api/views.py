@@ -1,6 +1,7 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions
 
-from posts.models import Post, Comment
+from posts.models import Post, Comment, User
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
 
@@ -21,10 +22,11 @@ class CommentViewSet(viewsets.ModelViewSet):
                           IsOwnerOrReadOnly)
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id')) 
+        serializer.save(author=self.request.user, post=post)
 
     def get_queryset(self):
-        post_id = self.kwargs['post_id']
-        queryset = Comment.objects.filter(post__id=post_id)
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        queryset = post.comments
 
         return queryset
